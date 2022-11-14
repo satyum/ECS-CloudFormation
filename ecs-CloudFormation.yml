@@ -7,7 +7,7 @@ Parameters:
   #   Default: 'arn:aws:acm:us-east-2:920048411410:certificate/05bc00c7-f3b2-4e0f-85a6-508b735facd4'
   Image:
     Type: String
-    Default: 504841354917.dkr.ecr.us-east-1.amazonaws.com/helloworld:demo-j-8582867
+    Default: 504841354917.dkr.ecr.us-east-1.amazonaws.com/test:latest
   ServiceName:
     Type: String
     Default: MyService
