@@ -195,7 +195,7 @@ Resources:
         - Name: !Ref ServiceName
           Image: !Ref Image
           PortMappings:
-            - ContainerPort: 8080
+            - ContainerPort: !Ref ContainerPort
           # CloudWatch Logs
           LogConfiguration:
             LogDriver: awslogs
