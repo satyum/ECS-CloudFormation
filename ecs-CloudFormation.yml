@@ -33,7 +33,9 @@ Parameters:
   AutoScalingTargetValue:
     Type: Number
     Default: 50
+
 Resources:
+  ## VPC
   VPC:
     Type: AWS::EC2::VPC
     Properties:
@@ -88,6 +90,7 @@ Resources:
   InternetGateway:
     Type: AWS::EC2::InternetGateway
 
+  ## Gateway Attachment
   GatewayToInternet:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
@@ -169,10 +172,14 @@ Resources:
     Properties:
       SubnetId: !Ref PrivateSubnet2
       RouteTableId: !Ref PrivateRouteTable
+  
+  ## Cluster
   Cluster:
     Type: AWS::ECS::Cluster
     Properties:
       ClusterName: !Join ['', [!Ref ServiceName, Cluster]]
+  
+  ## Task Definition
   TaskDefinition:
     Type: AWS::ECS::TaskDefinition
     
@@ -203,7 +210,8 @@ Resources:
               awslogs-region: !Ref AWS::Region
               awslogs-group: !Ref LogGroup
               awslogs-stream-prefix: ecs
-  # role needed by ECS
+  
+  ## Role needed by ECS
   ExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -217,7 +225,7 @@ Resources:
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
         
-  # role for the containers
+  ## Role for the containers
   TaskRole:
     Type: AWS::IAM::Role
     Properties:
@@ -229,7 +237,7 @@ Resources:
               Service: ecs-tasks.amazonaws.com
             Action: 'sts:AssumeRole'
      
-  # A role needed for auto scaling
+  ## A Role needed for auto scaling
   AutoScalingRole:
     Type: AWS::IAM::Role
     Properties:
@@ -243,7 +251,7 @@ Resources:
       ManagedPolicyArns:
         - 'arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceAutoscaleRole'
 
-
+  ## Container Security Group
   ContainerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -255,6 +263,7 @@ Resources:
           ToPort: !Ref ContainerPort
           SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
 
+  ## LoadBalancer Security Group
   LoadBalancerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -266,6 +275,8 @@ Resources:
           FromPort: 0
           ToPort: 65535
           CidrIp: 0.0.0.0/0
+  
+  ## Service
   Service:
     Type: AWS::ECS::Service
     
@@ -293,6 +304,8 @@ Resources:
         - ContainerName: !Ref ServiceName
           ContainerPort: !Ref ContainerPort
           TargetGroupArn: !Ref TargetGroup
+  
+  ## Target Group
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -309,6 +322,7 @@ Resources:
           Value: 60 
       TargetType: ip
       VpcId: !Ref VPC
+  
   ListenerHTTP:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
@@ -322,6 +336,8 @@ Resources:
     
       # Certificates:
       #   - CertificateArn: !Ref Certificate
+  
+  ## Load Balancer
   LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -341,6 +357,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Join ['', [/ecs/, !Ref ServiceName, TaskDefinition]]
+  
   AutoScalingTarget:
     Type: AWS::ApplicationAutoScaling::ScalableTarget
     Properties:
@@ -351,6 +368,7 @@ Resources:
       ServiceNamespace: ecs
       # AWS Identity and Access Management (IAM)
       RoleARN: !GetAtt AutoScalingRole.Arn
+ 
   AutoScalingPolicy:
     Type: AWS::ApplicationAutoScaling::ScalingPolicy
     Properties:
